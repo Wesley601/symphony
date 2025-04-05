@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	driver, err := drivers.NewNatsDriver(nats.DefaultURL)
+	driver, err := drivers.NewNatsDriver(nats.DefaultURL, "group-id")
 	if err != nil {
 		slog.Error("Error creating NATS driver:", slogutils.Error(err))
 		return

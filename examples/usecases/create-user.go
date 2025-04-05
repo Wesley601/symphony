@@ -34,7 +34,7 @@ func (c *CreateUserUseCase) Handle(ctx context.Context, event []byte) ([]byte, e
 		return nil, err
 	}
 	u.ID = uuid.New().String()
-	_, err := c.conn.Exec("INSERT INTO users (id, name, email, active) VALUES (?, ?, ?, ?)", u.ID, u.Name, u.Email, u.Active)
+	_, err := c.conn.Exec("INSERT INTO users (id, name, email, active) VALUES ($1, $2, $3, $4)", u.ID, u.Name, u.Email, u.Active)
 	if err != nil {
 		slog.Error("Error creating user:", slogutils.Error(err))
 		return nil, err

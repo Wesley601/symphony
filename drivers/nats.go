@@ -1,21 +1,24 @@
 package drivers
 
-import "github.com/nats-io/nats.go"
+import (
+	"github.com/nats-io/nats.go"
+)
 
 type NatsDriver struct {
-	conn *nats.Conn
+	conn    *nats.Conn
+	groupId string
 }
 
-func NewNatsDriver(url string) (*NatsDriver, error) {
+func NewNatsDriver(url, groupId string) (*NatsDriver, error) {
 	conn, err := nats.Connect(url)
 	if err != nil {
 		return nil, err
 	}
-	return &NatsDriver{conn}, nil
+	return &NatsDriver{conn, groupId}, nil
 }
 
 func (d *NatsDriver) Subscribe(topic string, handler func(msg []byte)) error {
-	_, err := d.conn.Subscribe(topic, func(msg *nats.Msg) {
+	_, err := d.conn.QueueSubscribe(topic, d.groupId, func(msg *nats.Msg) {
 		handler(msg.Data)
 	})
 

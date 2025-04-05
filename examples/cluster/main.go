@@ -27,7 +27,7 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	driver, err := drivers.NewNatsDriver(os.Getenv("NATS_URL"))
+	driver, err := drivers.NewNatsDriver(os.Getenv("NATS_URL"), "group-id")
 	if err != nil {
 		slog.Error("Error creating NATS driver:", slogutils.Error(err))
 		return
@@ -112,11 +112,26 @@ func migrateAndGetConnection() (conn *sql.DB, err error) {
 		return nil, err
 	}
 
-	if _, err := conn.Exec("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL, active BOOLEAN NOT NULL DEFAULT FALSE)"); err != nil {
+	if err := conn.Ping(); err != nil {
 		return nil, err
 	}
 
-	if _, err := conn.Exec("CREATE TABLE IF NOT EXISTS wallets (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, FOREIGN KEY(user_id) REFERENCES users(id))"); err != nil {
+	if _, err := conn.Exec(`
+		CREATE TABLE IF NOT EXISTS users (
+			id uuid PRIMARY KEY,
+			name TEXT NOT NULL,
+			email TEXT NOT NULL,
+			active BOOLEAN NOT NULL DEFAULT FALSE
+		)`); err != nil {
+		return nil, err
+	}
+
+	if _, err := conn.Exec(`
+		CREATE TABLE IF NOT EXISTS wallets (
+			id uuid PRIMARY KEY,
+			user_id uuid NOT NULL,
+			FOREIGN KEY(user_id) REFERENCES users(id)
+		)`); err != nil {
 		return nil, err
 	}
 

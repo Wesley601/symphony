@@ -26,8 +26,7 @@ func (c *CreateWalletUseCase) Handle(ctx context.Context, event []byte) ([]byte,
 		slog.Error("Error unmarshaling user:", slogutils.Error(err))
 		return nil, err
 	}
-	u.ID = uuid.New().String()
-	_, err := c.conn.Exec("INSERT INTO wallets (id, user_id) VALUES (?, ?)", u.ID, u.ID)
+	_, err := c.conn.Exec("INSERT INTO wallets (id, user_id) VALUES ($1, $2)", uuid.New().String(), u.ID)
 	if err != nil {
 		slog.Error("Error creating wallet:", slogutils.Error(err))
 		return nil, err

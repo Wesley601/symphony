@@ -25,7 +25,7 @@ func (c *ActivateAccountUseCase) Handle(ctx context.Context, event []byte) ([]by
 		return nil, err
 	}
 	u.Active = true
-	_, err := c.conn.Exec("UPDATE users SET active=? WHERE id=?", u.Active, u.ID)
+	_, err := c.conn.Exec("UPDATE users SET active=$1 WHERE id=$2", u.Active, u.ID)
 	if err != nil {
 		slog.Error("Error activating account:", slogutils.Error(err))
 		return nil, err
