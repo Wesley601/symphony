@@ -16,16 +16,14 @@ services:
       - ./infra/nats/nats.conf:/etc/nats/nats-server.conf
   db:
     image: postgres:latest
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
+      POSTGRES_DB: symphony
   app:
-    image: alpine:latest
-    container_name: app
-    volumes:
-      - ./cluster:/cluster
-    command: /usr/local/bin/cluster
-    entrypoint: sh -c "chmod +x /usr/local/bin/cluster && exec /usr/local/bin/cluster"
+    image: symphonyapp:latest
     healthcheck:
       test: "curl -f http://localhost:3000/health"
       interval: 30s
@@ -43,6 +41,8 @@ services:
     expose:
       - "8080"
     environment:
+      NATS_URL: nats://nats:4222
+      DB_URL: postgres://user:password@db:5432/symphony?sslmode=disable
       DB_USER: user
       DB_PASSWORD: password
     depends_on:
