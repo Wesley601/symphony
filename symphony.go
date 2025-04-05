@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/wesley601/symphony/slogutils"
+	"github.com/wesley601/symphony/internal/slogutils"
 )
 
 type EventHandler interface {
