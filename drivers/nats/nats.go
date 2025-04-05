@@ -1,23 +1,23 @@
-package drivers
+package nats
 
 import (
 	"github.com/nats-io/nats.go"
 )
 
-type NatsDriver struct {
+type Nats struct {
 	conn    *nats.Conn
 	groupId string
 }
 
-func NewNatsDriver(url, groupId string) (*NatsDriver, error) {
+func New(url, groupId string) (*Nats, error) {
 	conn, err := nats.Connect(url)
 	if err != nil {
 		return nil, err
 	}
-	return &NatsDriver{conn, groupId}, nil
+	return &Nats{conn, groupId}, nil
 }
 
-func (d *NatsDriver) Subscribe(topic string, handler func(msg []byte)) error {
+func (d *Nats) Subscribe(topic string, handler func(msg []byte)) error {
 	_, err := d.conn.QueueSubscribe(topic, d.groupId, func(msg *nats.Msg) {
 		handler(msg.Data)
 	})
@@ -25,10 +25,10 @@ func (d *NatsDriver) Subscribe(topic string, handler func(msg []byte)) error {
 	return err
 }
 
-func (d *NatsDriver) Publish(topic string, msg []byte) error {
+func (d *Nats) Publish(topic string, msg []byte) error {
 	return d.conn.Publish(topic, msg)
 }
 
-func (d *NatsDriver) Close() {
+func (d *Nats) Close() {
 	d.conn.Drain()
 }
