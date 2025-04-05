@@ -1,4 +1,4 @@
-module wesley601/symphony
+module github.com/wesley601/symphony
 
 go 1.23.0
 

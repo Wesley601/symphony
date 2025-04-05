@@ -5,7 +5,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"log/slog"
-	"wesley601/symphony/slogutils"
+
+	"github.com/wesley601/symphony/slogutils"
 )
 
 type ActivateAccountUseCase struct {

@@ -6,10 +6,11 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"wesley601/symphony"
-	"wesley601/symphony/drivers"
-	"wesley601/symphony/examples/usecases"
-	"wesley601/symphony/slogutils"
+
+	"github.com/wesley601/symphony"
+	"github.com/wesley601/symphony/drivers"
+	"github.com/wesley601/symphony/examples/usecases"
+	"github.com/wesley601/symphony/slogutils"
 
 	"github.com/nats-io/nats.go"
 )

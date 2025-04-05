@@ -3,7 +3,8 @@ package symphony
 import (
 	"context"
 	"log/slog"
-	"wesley601/symphony/slogutils"
+
+	"github.com/wesley601/symphony/slogutils"
 )
 
 type EventHandler interface {
