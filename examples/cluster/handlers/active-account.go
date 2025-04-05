@@ -1,33 +1,31 @@
-package usecases
+package handlers
 
 import (
 	"context"
 	"database/sql"
 	"encoding/json"
 	"log/slog"
-
-	"github.com/wesley601/symphony/slogutils"
 )
 
-type ActivateAccountUseCase struct {
+type ActivateAccountHandler struct {
 	conn *sql.DB
 }
 
-func NewActivateAccountUseCase(conn *sql.DB) *ActivateAccountUseCase {
-	return &ActivateAccountUseCase{conn: conn}
+func NewActivateAccountHandler(conn *sql.DB) *ActivateAccountHandler {
+	return &ActivateAccountHandler{conn: conn}
 }
 
-func (c *ActivateAccountUseCase) Handle(ctx context.Context, event []byte) ([]byte, error) {
+func (c *ActivateAccountHandler) Handle(ctx context.Context, event []byte) ([]byte, error) {
 	slog.Info("start to activate an account")
 	u := new(User)
 	if err := json.Unmarshal(event, u); err != nil {
-		slog.Error("Error unmarshaling account:", slogutils.Error(err))
+		slog.Error("Error unmarshaling account: " + err.Error())
 		return nil, err
 	}
 	u.Active = true
 	_, err := c.conn.Exec("UPDATE users SET active=$1 WHERE id=$2", u.Active, u.ID)
 	if err != nil {
-		slog.Error("Error activating account:", slogutils.Error(err))
+		slog.Error("Error activating account: " + err.Error())
 		return nil, err
 	}
 

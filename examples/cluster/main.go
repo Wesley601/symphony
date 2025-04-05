@@ -10,10 +10,9 @@ import (
 	"syscall"
 	"time"
 
+	"examples/cluster/handlers"
+
 	"github.com/wesley601/symphony"
-	"github.com/wesley601/symphony/drivers"
-	"github.com/wesley601/symphony/examples/usecases"
-	"github.com/wesley601/symphony/slogutils"
 
 	_ "github.com/lib/pq"
 )
@@ -21,23 +20,23 @@ import (
 func main() {
 	conn, err := migrateAndGetConnection()
 	if err != nil {
-		slog.Error("Error migrating database:", slogutils.Error(err))
+		slog.Error("Error migrating database: " + err.Error())
 		return
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	driver, err := drivers.NewNatsDriver(os.Getenv("NATS_URL"), "group-id")
-	if err != nil {
-		slog.Error("Error creating NATS driver:", slogutils.Error(err))
-		return
-	}
-	defer driver.Close()
-	symphony := symphony.New(driver)
+	// driver, err := nats.New(os.Getenv("NATS_URL"), "group-id")
+	// if err != nil {
+	// 	slog.Error("Error creating NATS driver: " + err.Error())
+	// 	return
+	// }
+	// defer driver.Close()
+	symphony := symphony.New(nil)
 
-	createUser := usecases.NewCreateUserUseCase(conn)
-	createWallet := usecases.NewCreateWalletUseCase(conn)
-	activateAccount := usecases.NewActivateAccountUseCase(conn)
+	createUser := handlers.NewCreateUserHandler(conn)
+	createWallet := handlers.NewCreateWalletHandler(conn)
+	activateAccount := handlers.NewActivateAccountHandler(conn)
 
 	finishSignal := make(chan os.Signal, 1)
 	signal.Notify(finishSignal, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
@@ -47,7 +46,7 @@ func main() {
 		After("create.wallet", createWallet).
 		After("activate.account", activateAccount).
 		Play(ctx); err != nil {
-		slog.Error("Error playing symphony:", slogutils.Error(err))
+		slog.Error("Error playing symphony: " + err.Error())
 	}
 
 	slog.Info("Symphony played successfully")
@@ -55,11 +54,11 @@ func main() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /api/users", func(w http.ResponseWriter, r *http.Request) {
-		if err := driver.Publish("create.user", []byte(`{"name": "John Doe", "email": "john.doe@example.com"}`)); err != nil {
-			slog.Error("Error publishing create.user event:", slogutils.Error(err))
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
+		// if err := driver.Publish("create.user", []byte(`{"name": "John Doe", "email": "john.doe@example.com"}`)); err != nil {
+		// 	slog.Error("Error publishing create.user event: " + err.Error())
+		// 	http.Error(w, "Internal server error", http.StatusInternalServerError)
+		// 	return
+		// }
 
 		w.WriteHeader(http.StatusAccepted)
 		w.Write([]byte(`{"message": "User creation initiated"}`))
@@ -78,7 +77,7 @@ func main() {
 	go func() {
 		slog.Info("Starting HTTP server on :8080")
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			slog.Error("HTTP server error:", slogutils.Error(err))
+			slog.Error("HTTP server error: " + err.Error())
 			cancel()
 		}
 	}()
@@ -93,7 +92,7 @@ func main() {
 	defer shutdownCancel()
 
 	if err := server.Shutdown(shutdownCtx); err != nil {
-		slog.Error("HTTP server shutdown error:", slogutils.Error(err))
+		slog.Error("HTTP server shutdown error: " + err.Error())
 	} else {
 		slog.Info("HTTP server shutdown gracefully")
 	}
