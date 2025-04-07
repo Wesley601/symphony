@@ -13,6 +13,7 @@ import (
 	"examples/cluster/handlers"
 
 	"github.com/wesley601/symphony"
+	"github.com/wesley601/symphony/drivers/nats"
 
 	_ "github.com/lib/pq"
 )
@@ -26,13 +27,13 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	// driver, err := nats.New(os.Getenv("NATS_URL"), "group-id")
-	// if err != nil {
-	// 	slog.Error("Error creating NATS driver: " + err.Error())
-	// 	return
-	// }
-	// defer driver.Close()
-	symphony := symphony.New(nil)
+	driver, err := nats.New(os.Getenv("NATS_URL"), "group-id")
+	if err != nil {
+		slog.Error("Error creating NATS driver: " + err.Error())
+		return
+	}
+	defer driver.Close()
+	symphony := symphony.New(driver)
 
 	createUser := handlers.NewCreateUserHandler(conn)
 	createWallet := handlers.NewCreateWalletHandler(conn)
